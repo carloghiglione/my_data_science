@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Created on Wed Jun 29 18:39:59 2022
+Created on Wed Jun 29 21:35:27 2022
 
 @author: Utente
 """
@@ -14,11 +14,12 @@ from sklearn.metrics import mean_squared_error
 import statsmodels.api as sm
 import seaborn as sns
 from scipy.stats import shapiro
-from sklearn.preprocessing import StandardScaler
 from sklearn.preprocessing import PolynomialFeatures
 from scipy.stats import norm
 
 plt.style.use('seaborn')
+import warnings 
+warnings.filterwarnings('ignore')
 
 ####################################################################################
 # Read the data
@@ -26,6 +27,8 @@ from sklearn.datasets import load_boston
 boston = load_boston()
 df = pd.DataFrame(boston.data, columns=boston.feature_names)
 df['MEDV'] = boston.target
+
+# df = df.drop(index=[374, 401, 414])
 x = df['LSTAT'].values.reshape(-1,1)
 y = df['MEDV']
 
@@ -34,46 +37,56 @@ ax.scatter(x, y)
 ax.set_title('Data')
 
 n = len(x)
-r = 1
 
 
 #####################################################################################
-# Linear Regression (Sklearn)
-mod = linear_model.LinearRegression()
-mod.fit(x, y)
+# Polynomial Regression (Sklearn)
+poly_ord = 3
+polynomial = PolynomialFeatures(degree=poly_ord, include_bias=False)
+X_poly = polynomial.fit_transform(x)
 
-y_hat = mod.predict(x)
+mod_poly =  linear_model.LinearRegression()
+mod_poly.fit(X_poly, y)
+
+y_hat = mod_poly.predict(X_poly)
 
 fig, ax = plt.subplots(1,1)
 ax.scatter(x, y)
-ax.plot(x, y_hat, color='red')
-ax.set_title('Fitted Model')
+xx = np.arange(np.min(x), np.max(x), 0.01).reshape(-1,1)
+yy = mod_poly.predict(polynomial.fit_transform(xx))
+ax.plot(xx, yy, color='red')
+ax.set_title(f'Fitted Model Poly, order={poly_ord}')
 
-r2 = r2_score(y, y_hat)
-r2_adj = 1 - (1 - r2)*(n - 1)/(n - r - 1)
-rss = sum( (y_hat-y)**2 )
+r2_poly = r2_score(y, y_hat)
+r2_adj_poly = 1 - (1 - r2_poly)*(n - 1)/(n - poly_ord - 1)
+rss_poly = sum( (y_hat-y)**2 )
 
 
-#######################################################################################
-# Linear Regression (Statsmodels)
-X = sm.add_constant(x)
+#####################################################################################
+# Polynomial Regression (Statsmodels)
+poly_ord = 3
+polynomial = PolynomialFeatures(degree=poly_ord, include_bias=False)
+X_poly = polynomial.fit_transform(x)
+
+X = sm.add_constant(X_poly)
 mod_sm = sm.OLS(y, X).fit()
 
 x_range = np.max(x)-np.min(x)
 a = 0.10
 xx = np.arange(np.min(x)-a*x_range, np.max(x)+a*x_range, step=0.1).reshape(-1,1)
-XX = sm.add_constant(xx)
-XX_IC = mod_sm.get_prediction(XX).conf_int(0.95)
+XX_poly = sm.add_constant(polynomial.fit_transform(xx))
+XX_IC = mod_sm.get_prediction(XX_poly).conf_int(0.95)
 
 fig, ax = plt.subplots(1,1)
 ax.scatter(x, y)
-ax.plot(xx, mod_sm.predict(XX), color='red')
+ax.plot(xx, mod_sm.predict(XX_poly), color='red')
 ax.fill_between(xx.reshape(-1,), XX_IC[:,0], XX_IC[:,1], color='red', alpha=0.2)
 ax.set_title('Fitted Model')
 
 
 print(mod_sm.summary())
 print(f'R2-adj: {mod_sm.rsquared_adj}')
+
 
 #########################################################################################
 # Model Diagnostic 
@@ -115,30 +128,28 @@ fig.tight_layout()
 
 
 
-####################################################################################
-# Model Evaluation with K-Fold Crossvalidation
-from sklearn.model_selection import cross_val_score
-from sklearn.model_selection import KFold
-from sklearn.model_selection import train_test_split
-
-lin_reg = linear_model.LinearRegression()
-r2_list = cross_val_score(lin_reg, x, y, cv=KFold(n_splits=10, shuffle=True, random_state=1234))
-r2_adj_list = 1 - (1 - r2_list)*(n - 1)/(n - r - 1)
-
-kf_r2 = np.mean(r2_list)
-kf_r2_adj = np.mean(r2_adj_list)
-
-
-kf = KFold(n_splits=10, shuffle=True, random_state=1234)
+#####################################################################################
+# Polynomial order selection
+r2_adj_list = []
 rmse_list = []
-for split_train, split_test in kf.split(X,y):
-    X_train = sm.add_constant(X[split_train])
-    y_train = y[split_train]
-    X_test = sm.add_constant(X[split_test])
-    y_test = y[split_test]
-    mod_kf = sm.OLS(y_train, X_train).fit()
-    rmse = np.sqrt(np.mean( ( y_test - mod_kf.predict(X_test) )**2 ))
-    rmse_list.append(rmse)
+
+k_max = 11
+for k in range(1,k_max):
+    polynomial = PolynomialFeatures(degree=k, include_bias=False)
+    X_k = polynomial.fit_transform(x)
+    X_k = sm.add_constant(X_k)
+    mod_k = sm.OLS(y, X_k).fit()
+    r2_adj_list.append(mod_k.rsquared_adj)
+    # rss_list.append(mod_k.ssr)
+    rmse_list.append(np.sqrt(mod_k.mse_model))
+
+fig, ax = plt.subplots(1,2)
+ax[0].plot(np.arange(1,k_max), r2_adj_list)
+ax[0].set_title('R2-Adjusted')
+ax[1].plot(np.arange(1,k_max), rmse_list)
+ax[1].set_title('Root MSE')
+fig.tight_layout()
+
 
 
 
