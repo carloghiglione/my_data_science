@@ -17,6 +17,7 @@ from scipy.stats import shapiro
 from sklearn.preprocessing import StandardScaler
 from sklearn.preprocessing import PolynomialFeatures
 from scipy.stats import norm
+from scipy import stats
 
 plt.style.use('seaborn')
 import warnings 
@@ -54,17 +55,24 @@ y_hat = mod_ridge.predict(X_poly)
 r2 = r2_score(y, y_hat)
 r2_adj = 1 - (1 - r2)*(n - 1)/(n - r - 1)
 rmse = np.sqrt(np.mean( (y - y_hat)**2))
+mse = np.mean( (y - y_hat)**2 )
 
 # Plot
 x_range = np.max(x)-np.min(x)
 a = 0.05
 xx = np.arange(np.min(x)-a*x_range, np.max(x)+a*x_range, step=0.1).reshape(-1,1)
 yy = mod_ridge.predict(polynomial.fit_transform(xx))
+XX = sm.add_constant(polynomial.fit_transform(xx))
+conf = 0.95
+alp = 1 - conf
+tq = stats.t(df=(n-r-1)).ppf(1-alp/2)
+IC_len = tq * np.sqrt( mse * ( 1 + np.diag( XX @ np.linalg.inv(XX.T @ XX) @ XX.T) ) )
+
 
 fig, ax = plt.subplots(1,1)
 ax.scatter(x, y)
 ax.plot(xx, yy, color='red')
-#ax.fill_between(xx.reshape(-1,), XX_IC[:,0], XX_IC[:,1], color='red', alpha=0.2)
+ax.fill_between(xx.reshape(-1,), yy - IC_len, yy + IC_len, color='red', alpha=0.2)
 ax.set_title('Fitted Model, Ridge')
 
 
@@ -96,17 +104,23 @@ y_hat = mod_ridge.predict(X_poly)
 r2 = r2_score(y, y_hat)
 r2_adj = 1 - (1 - r2)*(n - 1)/(n - r - 1)
 rmse = np.sqrt(np.mean( (y - y_hat)**2))
+mse = np.mean( (y - y_hat)**2 )
 
 # Plot
 x_range = np.max(x)-np.min(x)
 a = 0.05
 xx = np.arange(np.min(x)-a*x_range, np.max(x)+a*x_range, step=0.1).reshape(-1,1)
 yy = mod_lasso.predict(polynomial.fit_transform(xx))
+XX = sm.add_constant(polynomial.fit_transform(xx))
+conf = 0.95
+alp = 1 - conf
+tq = stats.t(df=(n-r-1)).ppf(1-alp/2)
+IC_len = tq * np.sqrt( mse * ( 1 + np.diag( XX @ np.linalg.inv(XX.T @ XX) @ XX.T) ) )
 
 fig, ax = plt.subplots(1,1)
 ax.scatter(x, y)
 ax.plot(xx, yy, color='red')
-#ax.fill_between(xx.reshape(-1,), XX_IC[:,0], XX_IC[:,1], color='red', alpha=0.2)
+ax.fill_between(xx.reshape(-1,), yy - IC_len, yy + IC_len, color='red', alpha=0.2)
 ax.set_title('Fitted Model, Lasso')
 
 
@@ -124,12 +138,6 @@ fig, ax = plt.subplots(1,1)
 ax.plot(a_grid, mse_cv)
 ax.axvline(alpha_best, color='red')
 ax.set_title('Lasso CV, alpha selection')
-
-
-
-
-
-
 
 
 
