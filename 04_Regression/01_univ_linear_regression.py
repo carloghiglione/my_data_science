@@ -116,10 +116,23 @@ fig.tight_layout()
 
 
 ####################################################################################
+# Model Evaluation on a Test Set
+from sklearn.model_selection import train_test_split
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.33, random_state=1234)
+mod_train = linear_model.LinearRegression()
+mod_train.fit(X_train, y_train)
+
+y_hat_test = mod_train.predict(X_test)
+r2_test = r2_score(y_test, y_hat_test)
+rmse_test = np.sqrt(np.mean( (y_test - y_hat_test)**2 ))
+
+
+
+####################################################################################
 # Model Evaluation with K-Fold Crossvalidation
 from sklearn.model_selection import cross_val_score
 from sklearn.model_selection import KFold
-from sklearn.model_selection import train_test_split
 
 lin_reg = linear_model.LinearRegression()
 r2_list = cross_val_score(lin_reg, x, y, cv=KFold(n_splits=10, shuffle=True, random_state=1234))
