@@ -47,17 +47,17 @@ if normalize:
 # CV to select best alpha
 a_grid = np.arange(1, 50, 1e-1)
 ridge_cv = RidgeCV(alphas=a_grid, store_cv_values=True).fit(X, y)
-alpha_best = ridge_cv.alpha_
+alpha_best_l2 = ridge_cv.alpha_
 mse_cv = np.mean(ridge_cv.cv_values_, axis=0)
 
 fig, ax = plt.subplots(1,1)
 ax.plot(a_grid, mse_cv)
-ax.axvline(alpha_best, color='red')
+ax.axvline(alpha_best_l2, color='red')
 ax.set_title('Ridge CV, alpha selection')
 
 
 # fit model with optimal alpha
-mod_ridge = Ridge(alpha=alpha_best, random_state=1234)
+mod_ridge = Ridge(alpha=alpha_best_l2, random_state=1234)
 mod_ridge.fit(X, y)
 
 y_hat = mod_ridge.predict(X)
@@ -68,7 +68,7 @@ rmse = np.sqrt(mse)
 
 # CV to estimate R2 and RMSE
 cv = KFold(n_splits=10, shuffle=True, random_state=1)
-lin_ridge = Ridge(alpha=alpha_best, random_state=1234)
+lin_ridge = Ridge(alpha=alpha_best_l2, random_state=1234)
 
 # R2
 r2_list = cross_val_score(lin_ridge, X, y, cv=cv, scoring='r2')
@@ -97,17 +97,17 @@ print(f'K-Fold CV: RMSE = {kf_rmse}, std={kf_rmse_std}')
 # CV to select best alpha
 a_grid = np.arange(1e-3, 1, 1e-3)
 lasso_cv = LassoCV(alphas=a_grid).fit(X, y)
-alpha_best = lasso_cv.alpha_
+alpha_best_l1 = lasso_cv.alpha_
 mse_cv = np.mean(lasso_cv.mse_path_, axis=1)
 
 fig, ax = plt.subplots(1,1)
 ax.plot(a_grid, mse_cv)
-ax.axvline(alpha_best, color='red')
+ax.axvline(alpha_best_l1, color='red')
 ax.set_title('Ridge CV, alpha selection')
 
 
 # fit model with optimal alpha
-mod_lasso = Lasso(alpha=alpha_best, random_state=1234)
+mod_lasso = Lasso(alpha=alpha_best_l1, random_state=1234)
 mod_lasso.fit(X, y)
 
 y_hat = mod_lasso.predict(X)
@@ -118,7 +118,7 @@ rmse = np.sqrt(mse)
 
 # CV to estimate R2 and RMSE
 cv = KFold(n_splits=10, shuffle=True, random_state=1)
-lin_lasso = Lasso(alpha=alpha_best, random_state=1234)
+lin_lasso = Lasso(alpha=alpha_best_l1, random_state=1234)
 
 # R2
 r2_list = cross_val_score(lin_lasso, X, y, cv=cv, scoring='r2')
@@ -164,6 +164,32 @@ plt.xticks(rotation=90)
 ax.set_title('Most Influential Coeffs')
 fig.tight_layout()
 
+
+#################################################################################
+# Compare Ridge and Lasso
+cv = KFold(n_splits=10, shuffle=True, random_state=1)
+lin_lasso = Lasso(alpha=alpha_best_l1, random_state=1234)
+lin_ridge = Ridge(alpha=alpha_best_l2, random_state=1234)
+
+rmse_list_l1 = np.sqrt( - cross_val_score(lin_lasso, X, y, cv=cv, scoring='neg_mean_squared_error'))
+rmse_list_l2 = np.sqrt( - cross_val_score(lin_ridge, X, y, cv=cv, scoring='neg_mean_squared_error'))
+
+# Test (difference of paired data, they are paired since random_state of KFold is the same,
+# they are computed on the same dataset)
+
+# Non-parametric (Wilcoxon)
+test = stats.wilcoxon(rmse_list_l2, rmse_list_l1)
+print(f'Test Different Performance: p-value={test[1]}')
+
+test_better = stats.wilcoxon(rmse_list_l2, rmse_list_l1, alternative='greater')
+print(f'Test Ridge better than Lasso: p-value={test_better[1]}')
+
+# Parameteric (T-Test)
+test = stats.ttest_rel(rmse_list_l2, rmse_list_l1)
+print(f'Test Different Performance: p-value={test[1]}')
+
+test_better = stats.ttest_rel(rmse_list_l2, rmse_list_l1, alternative='greater')
+print(f'Test Ridge better than Lasso: p-value={test_better[1]}')
 
 
 

@@ -181,3 +181,51 @@ for split_train, split_test in kf.split(X,y):
 
 
 
+####################################################################################
+# Model Diagnostic (Sklearn)
+mod = linear_model.LinearRegression()
+mod.fit(x, y)
+
+y_hat = mod.predict(x)
+res = y_hat - y
+lev = np.diag( X @ np.linalg.inv(X.T @ X) @ X.T )
+#res_std = res/( np.std(res, ddof=(r+1)) * np.sqrt(1 - lev) )
+res_std = (res - np.mean(res))/np.std(res, ddof=(r+1))
+
+# Shapiro Test on Residuals
+print(f'Shapiro Test on residuals: p-value={shapiro(res)[1]}')
+
+# Diagnostic Plot
+fig, ax = plt.subplots(2,2)
+fig.suptitle("Model Diagnostic")
+
+ax[0,0].scatter(y_hat, res_std, marker='o')
+ax[0,0].axhline(3, color='red', ls='--')
+ax[0,0].axhline(-3, color='red', ls='--')
+ax[0,0].set_title('Std Residuals vs Fitted')
+
+sm.qqplot(res_std, line='45', fit=True, ax=ax[0,1])
+ax[0,1].set_title('QQPlot of Residuals')
+
+sns.distplot(res_std, bins=15, kde=True, ax=ax[1,0], label='Std Resid')
+xx = np.arange(-4, 4, 0.01)
+ax[1,0].plot(xx, norm.pdf(xx, 0, 1), label='N(0,1)')
+ax[1,0].set_title('Std Residuals Histogram')
+ax[1,0].legend()
+
+ax[1,1].scatter(lev, res_std)
+ax[1,1].axhline(y=0, color='grey', linestyle='dashed')
+ax[1,1].set_xlabel('Leverage')
+ax[1,1].set_ylabel('Std residuals')
+ax[1,1].set_title('Residuals vs Leverage Plot')
+
+fig.tight_layout()
+
+
+
+
+
+
+
+
+

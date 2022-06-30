@@ -34,8 +34,8 @@ n = X.shape[0]
 r = X.shape[1]
 
 # normalize
-norm = True
-if norm:
+normalize = True
+if normalize:
     X = pd.DataFrame(StandardScaler().fit_transform(X), columns=X.columns) 
     y = pd.Series(StandardScaler().fit_transform(y.values.reshape(-1,1)).reshape(-1,))
 
@@ -54,6 +54,30 @@ mse = np.mean( (y - y_hat)**2 )
 
 print(f'R2-adj: {r2}')
 print(f'RMSE: {np.sqrt(mse)}')
+
+
+# Diagnostic Plot
+res = y - y_hat
+XX = sm.add_constant(X)
+res_std = (res - np.mean(res))/np.std(res, ddof=(r+1))
+
+fig, ax = plt.subplots(1,3, figsize=(12,4))
+fig.suptitle("Model Diagnostic")
+
+ax[0].scatter(y_hat, res_std, marker='o')
+ax[0].axhline(3, color='red', ls='--')
+ax[0].axhline(-3, color='red', ls='--')
+ax[0].set_title('Std Residuals vs Fitted')
+
+sm.qqplot(res_std, line='45', fit=True, ax=ax[1])
+ax[1].set_title('QQPlot of Residuals')
+
+sns.distplot(res_std, bins=15, kde=True, ax=ax[2], label='Std Resid')
+xx = np.arange(-4, 4, 0.01)
+ax[2].plot(xx, norm.pdf(xx, 0, 1), label='N(0,1)')
+ax[2].set_title('Std Residuals Histogram')
+ax[2].legend()
+fig.tight_layout()
 
 
 ######################################################################################
