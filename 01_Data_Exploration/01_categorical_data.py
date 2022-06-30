@@ -99,7 +99,7 @@ plt.tight_layout()
 # Correlation among the continuous attributes (no division by class)
 corrmat = df.corr()
 fig, ax = plt.subplots(1,1)
-sns.heatmap(corrmat, square=True, cmap='Blues', annot=True, ax=ax)
+sns.heatmap(corrmat, square=True, cmap='coolwarm', annot=True, ax=ax)
 ax.set_title('Correlation')
 plt.tight_layout()
 
