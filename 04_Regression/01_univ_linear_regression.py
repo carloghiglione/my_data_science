@@ -149,12 +149,23 @@ rmse_test = np.sqrt(np.mean( (y_test - y_hat_test)**2 ))
 from sklearn.model_selection import cross_val_score
 from sklearn.model_selection import KFold
 
+cv = cv=KFold(n_splits=10, shuffle=True, random_state=1234)
 lin_reg = linear_model.LinearRegression()
-r2_list = cross_val_score(lin_reg, x, y, cv=KFold(n_splits=10, shuffle=True, random_state=1234))
+
+# R2
+r2_list = cross_val_score(lin_reg, x, y, cv=cv, scoring='r2')
 r2_adj_list = 1 - (1 - r2_list)*(n - 1)/(n - r - 1)
 
 kf_r2 = np.mean(r2_list)
 kf_r2_adj = np.mean(r2_adj_list)
+
+# RMSE
+rmse_list = np.sqrt( - cross_val_score(lin_reg, X, y, cv=cv, scoring='neg_mean_squared_error'))
+kf_rmse = np.mean(rmse_list)
+
+
+print(f'K-Fold CV: R2-adj = {kf_r2_adj}')
+print(f'K-Fold CV: RMSE = {kf_rmse}')
 
 
 kf = KFold(n_splits=10, shuffle=True, random_state=1234)
