@@ -10,6 +10,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
 from scipy.stats import skew
+from sklearn.preprocessing import LabelEncoder
 
 plt.style.use('seaborn')
 
@@ -103,13 +104,19 @@ plt.tight_layout()
 
 ##########################################################################
 # One-Hot Encoding for Categorical Variables
-df = pd.get_dummies(df)
+df_one_hot = pd.get_dummies(df)
 
+
+##########################################################################
+# Numerical Encoding for Categorical Variables
+df_num = df.copy()
+df_num[df_num.columns[df_num.dtypes == 'object']] = df_num[df_num.columns[df_num.dtypes == 'object']].apply(lambda x: x.astype('category').cat.codes)
 
 
 ##########################################################################
 # Save Data
-df.to_csv('data\HousePricesOutputVariables.csv')
+df_one_hot.to_csv('data\house_price_ohe.csv')
+df_num.to_csv('data\house_price_num.csv')
 
 
 

@@ -18,6 +18,7 @@ from sklearn.metrics import average_precision_score
 from sklearn.metrics import precision_score, recall_score, accuracy_score, f1_score
 from sklearn.metrics import roc_curve
 from sklearn.metrics import roc_auc_score
+from sklearn.preprocessing import StandardScaler
 
 plt.style.use('seaborn')
 import warnings 
@@ -35,11 +36,15 @@ X = df[df.columns[df.columns != target]]
 n = X.shape[0]
 r = X.shape[1]
 
+normalization = True
+if normalization:
+    X = pd.DataFrame(StandardScaler().fit_transform(X), columns=X.columns)
+
 
 ##################################################################################
 # Logistic Regression
 C_reg = 1e11   # small values for high reguarization, set very high for no regularization
-mod_lr = LogisticRegression(penalty='l2', C=C_reg)
+mod_lr = LogisticRegression(penalty='l2', C=C_reg)  # set 'l1', solver='saga' for variable selection
 mod_lr.fit(X, y)
 
 y_hat = mod_lr.predict(X)
@@ -162,6 +167,19 @@ ax.set_xlabel('FPR')
 ax.set_ylabel('TPR')
 ax.set_title(f'ROC Curve, AUC={roc_auc}')
 
+
+
+#####################################################################################
+# Feature evaluation
+coefs = pd.DataFrame({'coef': mod_lr.coef_[0]}, index = X.columns) 
+coefs['coef_abs'] = coefs['coef'].abs()
+coefs = coefs.sort_values(by='coef_abs', ascending=False)
+
+fig, ax = plt.subplots(1,1)
+sns.barplot(x=coefs.index, y=coefs['coef'], ax = ax)
+plt.xticks(rotation=90)
+ax.set_title('Regressors')
+fig.tight_layout()
 
 
 
