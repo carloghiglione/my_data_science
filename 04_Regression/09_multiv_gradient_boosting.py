@@ -19,7 +19,7 @@ from sklearn.preprocessing import PolynomialFeatures
 from scipy.stats import norm
 from scipy import stats
 from sklearn.ensemble import GradientBoostingRegressor
-from sklearn.model_selection import cross_val_score, KFold
+from sklearn.model_selection import cross_val_score, KFold, train_test_split
 
 plt.style.use('seaborn')
 
@@ -29,58 +29,68 @@ plt.style.use('seaborn')
 df = pd.read_csv('data/house_price_train.csv', index_col=0)
 
 y = df['SalePrice']
-# X = df.loc[:,'MSSubClass':'YrSold']
-X = df.loc[:,'MSSubClass':'SaleCondition_Partial']
+X = df.loc[:,'MSSubClass':'YrSold']
+# X = df.loc[:,'MSSubClass':'SaleCondition_Partial']
 
 n = X.shape[0]
 r = X.shape[1]
 
 # normalize
-normalize = False
+normalize = True
 if normalize:
     X = pd.DataFrame(StandardScaler().fit_transform(X), columns=X.columns) 
     y = pd.Series(StandardScaler().fit_transform(y.values.reshape(-1,1)).reshape(-1,))
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.20, shuffle=True, random_state=1234)
+
+r = X_train.shape[1]
+n_train = X_train.shape[0]
+n_test = X_test.shape[0]
     
 
 ########################################################################################
 # Gradient Boosting
-mod_gbr = GradientBoostingRegressor(alpha=0.9,learning_rate=0.05, max_depth=2, min_samples_leaf=5, 
+mod_gbr = GradientBoostingRegressor(alpha=0.9, learning_rate=0.05, max_depth=2, min_samples_leaf=5, 
                                     min_samples_split=2, n_estimators=500, random_state=1234)
-mod_gbr.fit(X, y)
+mod_gbr.fit(X_train, y_train)
 
-y_hat = mod_gbr.predict(X)
+y_hat_train = mod_gbr.predict(X_train)
+y_hat_test = mod_gbr.predict(X_test)
 
-r2 = r2_score(y, y_hat)
-r2_adj = 1 - (1 - r2)*(n - 1)/(n - r - 1)
-rss = sum( (y_hat-y)**2 )
-mse = np.mean( (y - y_hat)**2 )
+r2_train = r2_score(y_train, y_hat_train)
+rmse_train = np.sqrt(np.mean( (y_train - y_hat_train)**2 ))
 
-print(f'R2-adj: {r2}')
-print(f'RMSE: {np.sqrt(mse)}')
+r2_test = r2_score(y_test, y_hat_test)
+rmse_test = np.sqrt(np.mean( (y_test - y_hat_test)**2 ))
 
 
+#######################################
+# Cross-Validation
 cv = KFold(n_splits=10, shuffle=True, random_state=1)
-gbr_reg = GradientBoostingRegressor(alpha=0.9,learning_rate=0.05, max_depth=2, min_samples_leaf=5, 
+mod_gbr_cv = GradientBoostingRegressor(alpha=0.9, learning_rate=0.05, max_depth=2, min_samples_leaf=5, 
                                     min_samples_split=2, n_estimators=500, random_state=1234)
 
 # R2
-r2_list = cross_val_score(gbr_reg, X, y, cv=cv, scoring='r2')
-r2_adj_list = 1 - (1 - r2_list)*(n - 1)/(n - r - 1)
-
-kf_r2 = np.mean(r2_list)
-kf_r2_adj_std = np.std(r2_adj_list)
-kf_r2_adj_std = np.std(r2_adj_list)
-
-print(f'K-Fold CV: R2-adj = {kf_r2}, std={kf_r2_adj_std}')
+r2_list = cross_val_score(mod_gbr_cv, X_train, y_train, cv=cv, scoring='r2')
+r2_cv = np.mean(r2_list)
+r2_std_cv = np.std(r2_list)
 
 # RMSE
-rmse_list = np.sqrt( - cross_val_score(gbr_reg, X, y, cv=cv, scoring='neg_mean_squared_error'))
-kf_rmse = np.mean(rmse_list)
-kf_rmse_std = np.std(rmse_list)
+rmse_list = np.sqrt( - cross_val_score(mod_gbr_cv, X_train, y_train, cv=cv, scoring='neg_mean_squared_error'))
+rmse_cv = np.mean(rmse_list)
+rmse_std_cv = np.std(rmse_list)
 
-print(f'K-Fold CV: RMSE = {kf_rmse}, std={kf_rmse_std}')
 
-print(f'K-Fold CV: RMSE = {kf_rmse}')
+##################################
+# Visualize Performance
+print('\nGradient Boosting Regression, R2:')
+print(f'Train: {r2_train}') 
+print(f'CV: {r2_cv},  std={r2_std_cv}')
+print(f'Test: {r2_test}')
+print('\nGradient Boosting Regression, RMSE:')
+print(f'Train: {rmse_train}')
+print(f'CV: {rmse_cv},  std={rmse_std_cv}')
+print(f'Test: {rmse_test}')
 
 
 ####################################################################################
