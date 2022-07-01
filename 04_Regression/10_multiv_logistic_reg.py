@@ -18,8 +18,6 @@ from sklearn.metrics import average_precision_score
 from sklearn.metrics import precision_score, recall_score, accuracy_score, f1_score
 from sklearn.metrics import roc_curve
 from sklearn.metrics import roc_auc_score
-from sklearn.model_selection import StratifiedKFold
-from sklearn.metrics import ConfusionMatrixDisplay
 
 plt.style.use('seaborn')
 import warnings 
