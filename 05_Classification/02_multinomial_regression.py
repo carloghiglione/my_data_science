@@ -11,7 +11,7 @@ from sklearn import datasets
 from sklearn import model_selection
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score, confusion_matrix
-from sklearn.model_selection import KFold, cross_val_score
+from sklearn.model_selection import KFold, cross_val_score, train_test_split
 import seaborn as sns
 from scipy.stats import wilcoxon, ttest_rel
 
@@ -28,8 +28,10 @@ target = np.array(iris.target)
 X = iris.data[:,:2]
 y = target
 
-r = X.shape[1]
-n = X.shape[0]
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.20, shuffle=True, random_state=1234)
+
+r = X_train.shape[1]
+n = X_train.shape[0]
 
 ####################################################################################
 # Multinomial Regression - One Versus Rest
@@ -37,30 +39,34 @@ n = X.shape[0]
 
 C_reg = 1e11
 mod_ovr = LogisticRegression(C=C_reg, multi_class='ovr', random_state=1234)
-mod_ovr.fit(X, y)
+mod_ovr.fit(X_train, y_train)
 
-y_hat = mod_ovr.predict(X)
-y_hat_p = mod_ovr.predict_proba(X)
+y_hat_train = mod_ovr.predict(X_train)
+y_hat_test = mod_ovr.predict(X_test)
+y_hat_p = mod_ovr.predict_proba(X_train)
 
-acc = accuracy_score(y, y_hat)
+acc = accuracy_score(y_train, y_hat_train)
+acc_test = accuracy_score(y_test, y_hat_test)
 
-cm_norm = confusion_matrix(y, y_hat)/n
+cm_norm = confusion_matrix(y_test, y_hat_test)/n
 
 fig, ax = plt.subplots(1,1, figsize=(5,4))
 sns.heatmap(cm_norm, square=True, cmap='Blues', annot=True, ax=ax)
-ax.set_title('Confusion Matrix Norm')
+ax.set_title('Confusion Matrix Norm, Test, OVR')
 plt.tight_layout()
 
 
 cv = KFold(n_splits=10, shuffle=True, random_state=1)
 mod_ovr_cv = LogisticRegression(C=C_reg, multi_class='ovr', random_state=1234)
 
-acc_list_ovr = cross_val_score(mod_ovr_cv, X, y, cv=cv, scoring='accuracy')
+acc_list_ovr = cross_val_score(mod_ovr_cv, X_train, y_train, cv=cv, scoring='accuracy')
 acc_cv = np.mean(acc_list_ovr)
 acc_cv_std = np.std(acc_list_ovr)
 
-print(f'Accuracy: {acc}')
+print('OVR')
+print(f'Accuracy Train: {acc}')
 print(f'KF-CV Accuracy: mean={acc_cv}, std={acc_cv_std}')
+print(f'Accuracy Test: {acc_test}')
 
 
 ##############
@@ -90,31 +96,35 @@ ax.set_title('Fitted Class Space, One Versus Rest')
 
 C_reg = 1e11
 mod_mul = LogisticRegression(C=C_reg, multi_class='multinomial', random_state=1234)
-mod_mul.fit(X, y)
+mod_mul.fit(X_train, y_train)
 
-y_hat = mod_mul.predict(X)
-y_hat_p = mod_mul.predict_proba(X)
+y_hat_train = mod_mul.predict(X_train)
+y_hat_test = mod_mul.predict(X_test)
+y_hat_p = mod_mul.predict_proba(X_train)
 
-acc = accuracy_score(y, y_hat)
+acc = accuracy_score(y_train, y_hat_train)
+acc_test = accuracy_score(y_test, y_hat_test)
 
-c_norm = confusion_matrix(y, y_hat)/n
+# Confusion Matrix
+cm_norm = confusion_matrix(y_test, y_hat_test)/len(y_test)
 
 fig, ax = plt.subplots(1,1, figsize=(5,4))
-sns.heatmap(c_norm, annot=True, square=True, cmap='Blues', ax = ax)
-ax.set_title('Confusion Matrix Norm')
-fig.tight_layout()
+sns.heatmap(cm_norm, square=True, cmap='Blues', annot=True, ax=ax)
+ax.set_title('Confusion Matrix Norm, Test, Multinomial')
+plt.tight_layout()
 
 
 cv = KFold(n_splits=10, shuffle=True, random_state=1)
-mod_mul_cv = LogisticRegression(C=C_reg, multi_class='multinomial', random_state=1234)
+mod_ovr_cv = LogisticRegression(C=C_reg, multi_class='multinomial')
 
-
-acc_list_mul = cross_val_score(mod_mul_cv, X, y, cv=cv, scoring='accuracy')
+acc_list_mul = cross_val_score(mod_ovr_cv, X_train, y_train, cv=cv, scoring='accuracy')
 acc_cv = np.mean(acc_list_mul)
 acc_cv_std = np.std(acc_list_mul)
 
-print(f'Accuracy: {acc}')
+print('\nMultinomial')
+print(f'Accuracy Train: {acc}')
 print(f'KF-CV Accuracy: mean={acc_cv}, std={acc_cv_std}')
+print(f'Accuracy Test: {acc_test}')
 
 
 ##############
