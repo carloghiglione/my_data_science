@@ -27,23 +27,24 @@ warnings.filterwarnings("ignore")
 df = pd.read_csv('data/stocks/GOOGL_2006-01-01_to_2018-01-01.csv', index_col='Date', parse_dates=['Date'])
 df['Var'] = df['High'] - df['Low']
 df = df.drop(columns=['Name', 'High', 'Low'])
-y_df = df['Close']
+y_s = df['Close']
 X_df = df.loc[:, df.columns != 'Close']
 
 
 
 #######################################################################################
+# Test Stationarity (Augmented Dickey-Fuller Test)
 # H0: the series is random walk => non stationary
 # H1: the series is not random walk => may be stationary
 
-adf = adfuller(y_df.values, regression='c')[1]
+adf = adfuller(y_s.values, regression='c')[1]
 print(f'Adf Test: pvalue={adf}')
 # I don't reject H0, the process is not stationary
 
 
 #######################################################################################
 # ARIMA Model Selection
-y = y_df.values
+y = y_s.values
 
 p = []
 q = []
@@ -109,7 +110,7 @@ print(f'Durbin-Watson Test: {durbin_watson(mod_arima.resid)}')
 
 #######################################################################################
 # ARIMAX Model Selection
-y = y_df.values
+y = y_s.values
 X = X_df.values
 
 p = []
@@ -171,25 +172,6 @@ print(mod_arimax.summary())
 mod_arimax.plot_diagnostics()
 plt.tight_layout()
 print(f'Durbin-Watson Test: {durbin_watson(mod_arimax.resid)}')
-
-
-
-
-
-
-
-
-
-
-
-# seasonal trend
-milk_production = pd.read_csv('data/others/milk_production.csv', index_col='Month', parse_dates=['Month'])
-
-
-
-
-
-
 
 
 
