@@ -24,13 +24,16 @@ warnings.filterwarnings("ignore")
 ###################################################################################
 # read data
 df = pd.read_csv('data/others/a10.csv', parse_dates=['date'])
+# df = pd.read_csv('data/stocks/GOOGL_2006-01-01_to_2018-01-01.csv', parse_dates=['Date'])
+# df = df.rename(columns={'Close':'value'})
 
-# Extract info from timestamp
+# # Extract info from timestamp
 df['weekday'] = df['date'].apply(lambda x: x.weekday())
 df['year'] = df['date'].apply(lambda x: x.year)
 df['month'] = df['date'].apply(lambda x: x.month)
 
 df = df.set_index('date', drop=True)
+# df = df.asfreq(freq='D', method='bfill')
 
 fig, ax = plt.subplots(1,1)
 #ax.plot(df['date'], df['value'])
@@ -46,12 +49,12 @@ sns.boxplot(x='weekday', y='value', data=df, ax=ax[2], color='royalblue')
 fig.tight_layout()
 
 
-# fig, ax = plt.subplots(1,3, sharey=(True), figsize=(10,5))
-# df[['value', 'year']].boxplot(by='year', ax=ax[0])
-# plt.xticks(rotation=90)
-# df[['value', 'month']].boxplot(by='month', ax=ax[1])
-# df[['value', 'weekday']].boxplot(by='weekday', ax=ax[2])
-# fig.tight_layout()
+fig, ax = plt.subplots(1,3, sharey=(True), figsize=(10,5))
+df[['value', 'year']].boxplot(by='year', ax=ax[0])
+plt.xticks(rotation=90)
+df[['value', 'month']].boxplot(by='month', ax=ax[1])
+df[['value', 'weekday']].boxplot(by='weekday', ax=ax[2])
+fig.tight_layout()
 
 
 ####################################################################################
