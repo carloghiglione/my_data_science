@@ -12,14 +12,15 @@ from sklearn.svm import OneClassSVM
 from sklearn.ensemble import IsolationForest
 import seaborn as sns
 import pandas as pd
+from scipy.stats import chi2
 
 plt.style.use('seaborn')
 
 
 #################################################################################################
 # Generate the data
-
-def GenerateAnomalyDetectionExample(n=1000,d=4,r=0.01,or_=10,random_state=1234):
+d = 4
+def GenerateAnomalyDetectionExample(n=1000,d=d,r=0.01,or_=10,random_state=1234):
     """n number of samples
        d number of dimensions
        r outlier ratio
@@ -67,6 +68,17 @@ df['class'] = norm_out
 sns.pairplot(df, hue='class', diag_kind='kde', palette='tab10')
 plt.tight_layout()
 
+mean = MCD.location_
+cov = MCD.covariance_
+conf = 0.9
+rad = chi2(df=d).ppf(q=conf)
+
+fig, ax = plt.subplots(1,1)
+sns.distplot(MCD.dist_[norm_out==1], ax=ax, kde=True, label='Normal Data')
+xx = np.arange(0, 20, 0.01)
+ax.plot(xx, chi2(df=d).pdf(xx), label=f'Chi2({d})')
+ax.legend()
+ax.set_title('Distance of Norml Data')
 
 
 ################################################################################################
@@ -94,23 +106,23 @@ plt.tight_layout()
 
 
 ###############################################################################################
-# One Class SVM  (not good as others)
-kernel = 'rbf' # 'linear', 'poly', 'rbf', 'sigmoid', 'precomputed
-contamination = 0.01
-one_class_SVM = OneClassSVM(kernel=kernel, nu=contamination)
-one_class_SVM.fit(X)
+# # One Class SVM  (not good as others)
+# kernel = 'rbf' # 'linear', 'poly', 'rbf', 'sigmoid', 'precomputed
+# contamination = 0.01
+# one_class_SVM = OneClassSVM(kernel=kernel, nu=contamination)
+# one_class_SVM.fit(X)
 
-norm_out = one_class_SVM.predict(X)
+# norm_out = one_class_SVM.predict(X)
 
-fig, ax = plt.subplots(1,1)
-sns.scatterplot(x=X[:,0], y=X[:,1], hue=norm_out, palette='tab10', ax=ax)
-handles, labels = ax.get_legend_handles_labels()
-ax.legend(handles, ['Outlier', 'Normal'])
-ax.set_title('MCD Outlier Detection')
-fig.tight_layout()
+# fig, ax = plt.subplots(1,1)
+# sns.scatterplot(x=X[:,0], y=X[:,1], hue=norm_out, palette='tab10', ax=ax)
+# handles, labels = ax.get_legend_handles_labels()
+# ax.legend(handles, ['Outlier', 'Normal'])
+# ax.set_title('MCD Outlier Detection')
+# fig.tight_layout()
 
-df = pd.DataFrame(X)
-df['class'] = norm_out
+# df = pd.DataFrame(X)
+# df['class'] = norm_out
 
-sns.pairplot(df, hue='class', diag_kind='kde', palette='tab10')
-plt.tight_layout()
+# sns.pairplot(df, hue='class', diag_kind='kde', palette='tab10')
+# plt.tight_layout()
