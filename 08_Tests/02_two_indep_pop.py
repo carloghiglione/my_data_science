@@ -24,8 +24,8 @@ warnings.filterwarnings('ignore')
 m1 = np.array([1.0, 1.0])
 c1 = np.array([[2.0, 0.3], [0.3, 0.5]])
 m2 = np.array([1.0, 1.0])
-# c2 = np.array([[0.5, 0.1], [0.1, 0.9]])
-c2 = np.array([[2.0, 0.3], [0.3, 0.5]])
+c2 = np.array([[0.5, 0.1], [0.1, 0.9]])
+# c2 = np.array([[2.0, 0.3], [0.3, 0.5]])
 
 X1 = multivariate_normal(m1, c1).rvs(100)
 X2 = multivariate_normal(m2, c2).rvs(200)
@@ -52,16 +52,36 @@ S2 = np.cov(X2.T)
 Sp = ( (n1-1)*S1 + (n2-1)*S2 )/(n1+n2-2)
 Sp_inv = np.linalg.inv(Sp)
 
-np = 1/(1/n1 + 1/n2)
-T0 = np * ( (mu1 - mu2) - d0 ).T @ Sp_inv @ ( (mu1 - mu2) - d0 )
+n_p = 1/(1/n1 + 1/n2)
+T0 = n_p * ( (mu1 - mu2) - d0 ).T @ Sp_inv @ ( (mu1 - mu2) - d0 )
 
-pval = 1 - f.ppf(q=T0*(n1+n2-1-d)/(d*(n1+n2-2)), dfn=n1+n2-1-d, dfd=d)
+pval = 1 - f.cdf(x=T0*(n1+n2-1-d)/(d*(n1+n2-2)), dfn=n1+n2-1-d, dfd=d)
 
-
-
+print(f'Hotellings T-test: pavlue={pval}')
 
 
 ###################################################################################
+# Asymptotic Test (Welch-T Test, different covariance)
+# H0: mu1 - mu2 = d0
+# H1: mu1 - mu2 != d0
+d0 = np.array([0.0, 0.0])
+
+mu1 = np.mean(X1, axis=0)
+mu2 = np.mean(X2, axis=0)
+S1 = np.cov(X1.T)
+S2 = np.cov(X2.T)
+Sp = S1/n1 + S2/n2
+Sp_inv = np.linalg.inv(Sp)
+
+T0 = ( (mu1 - mu2) - d0 ).T @ Sp_inv @ ( (mu1 - mu2) - d0 )
+
+pval = 1 - chi2(df=d).cdf(x = T0)
+
+print(f'Welch T-test: pavlue={pval}')
+
+
+
+# ###################################################################################
 # Permutational Test
 # H0: mu1 = mu2
 # H1: mu1 != mu2
@@ -96,7 +116,6 @@ sns.distplot(T_list, kde=True, ax=ax, label='T Distribution')
 ax.axvline(T0, color='red', label='T0')
 ax.legend()
 ax.set_title('T Permutational Distribution')
-
 
 
 

@@ -50,7 +50,7 @@ t_test = ttest_rel(exp0, exp1)
 
 print(f'Paired T-Test: pvalue={t_test[1]}')
 
-# alternative: set diff = exp0 - exp1, test one population mean = 0
+# alternative: set diff = exp0 - exp1, test one population mean = 0 (anche per multivariate)
 
 
 ####################################################################################
@@ -64,7 +64,7 @@ w_test = wilcoxon(exp0, exp1)
 
 print(f'Paired Wilcoxon-Test: pvalue={w_test[1]}')
 
-# alternative: set diff = exp0 - exp1, test one population mean = 0
+# alternative: set diff = exp0 - exp1, test one population mean = 0 
 
 
 ####################################################################################
@@ -100,9 +100,6 @@ sns.distplot(T_list, ax=ax, kde=True, label='T Distribution')
 ax.axvline(T0, color='red', label='T0')
 ax.legend()
 ax.set_title('T Permutational Distribution')
-
-
-
 
 
 

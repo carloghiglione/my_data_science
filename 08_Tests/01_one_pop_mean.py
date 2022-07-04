@@ -11,7 +11,7 @@ import pandas as pd
 from sklearn.covariance import EllipticEnvelope
 from scipy.spatial.distance import mahalanobis
 import seaborn as sns
-from scipy.stats import chi2, f
+from scipy.stats import chi2, f, multivariate_normal
 from tqdm import tqdm
 
 plt.style.use('seaborn')
@@ -23,7 +23,9 @@ warnings.filterwarnings('ignore')
 # Read Data
 df = pd.read_csv('data/extra.txt', sep=' ')
 X = df.values
-X = np.random.randn(1000, 2)
+m = np.array([1.0, 1.0])
+c = np.array([[2.0, 0.3], [0.3, 0.5]])
+X = multivariate_normal(m, c).rvs(300)
 n = X.shape[0]
 d = X.shape[1]
 
@@ -51,15 +53,24 @@ ax.set_title('Distance of Norml Data')
 # Mean Test (Parametric)
 # H0: mu = mu0
 # H1: mu != mu0
-from scipy.stats import ttest_1samp   # solo caso univariato 
 
 # mu0 = np.array([120000, 52000])
 mu0 = np.array([0.5, 0.5])
 T0 = n * (mu - mu0).T @ S_inv @ (mu - mu0)
-pval = 1 - f.ppf(q=T0*(n-d)/(d*(n-1)), dfn=n-d, dfd=d)
+pval = 1 - f.cdf(x = T0*(n-d)/(d*(n-1)), dfn = n-d, dfd = d)
 
 print(f'T-Test: pvalue={pval}')
 
+
+###################################################################################
+# Mean Test (Asymptotic)
+# H0: mu = mu0
+# H1: mu != mu0
+mu0 = np.array([0.5, 0.5])
+T0 = n * (mu - mu0).T @ S_inv @ (mu - mu0)
+pval = 1 - chi2(df=d).cdf(x = T0)
+
+print(f'T-Test Asymptotic: pvalue={pval}')
 
 
 ###################################################################################
@@ -70,7 +81,6 @@ def statistics(X, mu0):
 
 def permute(X, mu0):
     n = X.shape[0]
-    d = X.shape[1]
     return mu0 + (X.copy() - mu0)*np.random.choice([-1,1], size=n, replace=True).reshape(-1,1)
 
 # mu0 = np.array([120000, 52000])

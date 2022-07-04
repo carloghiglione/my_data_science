@@ -51,7 +51,7 @@ print(f'T-Test: pvalue={t_test[1]}')
 
 
 ###################################################################################
-# Parametric (Welch-t, Different Variance Asymptotic)
+# Parametric (Welch-T, Different Variance Asymptotic)
 # H0: mu1 = mu2
 # H1: mu1 != mu2
 t_test = ttest_ind(X1, X2, equal_var=False)
