@@ -32,13 +32,25 @@ plt.style.use('seaborn')
 # Read the data (already parse timestamp)
 df = pd.read_csv('data\london_merged.csv', parse_dates=['timestamp'])
 
+# df = pd.read_csv('data\london_merged.csv')
+# df['timestamp'] = pd.to_datetime(df['timestamp'])
+
 # Obtain time info from timestamp
-df['weekday'] = df['timestamp'].apply(lambda x: x.weekday())
-df['year'] = df['timestamp'].apply(lambda x: x.year)
-df['month'] = df['timestamp'].apply(lambda x: x.month)
-df['hour'] = df['timestamp'].apply(lambda x: x.hour)
-df['minute'] = df['timestamp'].apply(lambda x: x.minute)
-df['second'] = df['timestamp'].apply(lambda x: x.second)
+# df['weekday'] = df['timestamp'].apply(lambda x: x.weekday())
+# df['year'] = df['timestamp'].apply(lambda x: x.year)
+# df['month'] = df['timestamp'].apply(lambda x: x.month)
+# df['date'] = df['timestamp'].apply(lambda x: x.date())
+# df['hour'] = df['timestamp'].apply(lambda x: x.hour)
+# df['minute'] = df['timestamp'].apply(lambda x: x.minute)
+# df['second'] = df['timestamp'].apply(lambda x: x.second)
+
+df['weekday'] = df['timestamp'].dt.weekday
+df['year'] = df['timestamp'].dt.year
+df['month'] = df['timestamp'].dt.month
+df['date'] = df['timestamp'].dt.date
+df['hour'] = df['timestamp'].dt.hour
+df['minute'] = df['timestamp'].dt.minute
+df['second'] = df['timestamp'].dt.second
 
 df = df.set_index('timestamp', drop=True)
 
