@@ -1,4 +1,4 @@
-m,n = [int(i) for i in input().strip().split(' ')]
+m,n = [int(i) for i in input().strip().split(' ')]   # dopo input().strip() va a capo nella lettura
 X = []
 Y = []
 for i in range(n):

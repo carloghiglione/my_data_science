@@ -103,7 +103,7 @@ plt.grid(True)
 plt.xlabel('Number of clusters')
 plt.xticks(np.arange(1,k_max))
 plt.legend()
-plt.title('KMeans Clustering, Within vs Tot')
+plt.title('Hierarchical Clustering, Within/Tot')
 
 
 fig = plt.figure()
@@ -112,7 +112,7 @@ plt.grid(True)
 plt.xlabel('Number of clusters')
 plt.xticks(np.arange(2,k_max))
 plt.legend()
-plt.title('KMeans Clustering, Within vs Tot')
+plt.title('Hierarchical Clustering, Silhouette')
 
 
 
