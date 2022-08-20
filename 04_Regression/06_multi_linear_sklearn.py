@@ -151,6 +151,8 @@ fig.tight_layout()
 # # Interaction
 # polynomial = PolynomialFeatures(degree = 2, include_bias=False, interaction_only=True)
 # X_int = pd.DataFrame(polynomial.fit_transform(X)) 
+# X_int_cols = poly.get_feature_names(X.columns)
+# X_int = pd.DataFrame(X_int, columns=X_int_cols)
 
 # mod_int = linear_model.LinearRegression()
 # mod_int.fit(X_int, y)
