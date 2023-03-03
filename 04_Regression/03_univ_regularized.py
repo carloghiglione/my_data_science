@@ -25,12 +25,9 @@ warnings.filterwarnings('ignore')
 
 ####################################################################################
 # Read the data
-from sklearn.datasets import load_boston
-boston = load_boston()
-df = pd.DataFrame(boston.data, columns=boston.feature_names)
-df['MEDV'] = boston.target
-x = df['LSTAT'].values.reshape(-1,1)
-y = df['MEDV']
+df = pd.read_csv('data/house_price_train.csv', index_col=0)
+y = df['SalePrice']
+x = df['YearBuilt'].values.reshape(-1,1)
 
 fig, ax = plt.subplots(1,1)
 ax.scatter(x, y)

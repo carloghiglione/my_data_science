@@ -36,7 +36,7 @@ import seaborn as sns
 #####################################################
 # visualize data
 fig, ax = plt.subplots(1,1)
-sns.scatterplot('X1', 'X2', data=tab, ax=ax)
+sns.scatterplot(data=tab, x='X1', y='X2', ax=ax)
 ax.set_title('Data')
 
 ####################################################
@@ -57,7 +57,7 @@ k_final = 3
 final_clust = fcluster(Z, k_final, criterion='maxclust')
 
 fig, ax = plt.subplots(1,1)
-sns.scatterplot('X1','X2', data=tab, hue=final_clust, ax=ax, palette='tab10')
+sns.scatterplot(data=tab, x='X1', y='X2', hue=final_clust, ax=ax, palette='tab10')
 ax.set_title(f'Hierarchical Clustering: method={method}, k={k_final}')
 
 

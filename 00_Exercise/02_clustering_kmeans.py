@@ -33,7 +33,7 @@ from sklearn.metrics import silhouette_score
 
 
 fig, ax = plt.subplots(1,1)
-sns.scatterplot('X1','X2', data=tab, ax=ax)
+sns.scatterplot(data=tab, x='X1', y='X2', ax=ax)
 ax.set_title('Data')
 
 ################################
@@ -45,7 +45,7 @@ clust = KMeans(n_clusters=k_final).fit_predict(X)
 tab['class'] = clust
 
 fig, ax = plt.subplots(1,1)
-sns.scatterplot('X1', 'X2', data=tab, hue=clust, palette='tab10')
+sns.scatterplot(data=tab, x='X1', y='X2', hue=clust, palette='tab10')
 ax.set_title(f'K-Means Clutsering, k = {k_final}')
 
 
