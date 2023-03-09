@@ -1,0 +1,7 @@
+crea environment nuovo (env_pyspark) su anaconda
+conda activate env_pyspark
+(env_pyspark) conda install openjdk
+(env_pyspark) conda install pyspark
+
+più istruzioni per farlo funzioanre su jupyter
+https://sparkbyexamples.com/pyspark/install-pyspark-in-anaconda-jupyter-notebook/
